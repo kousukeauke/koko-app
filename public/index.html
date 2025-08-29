@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>チャットアプリ</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #messages { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 5px; }
+    input { margin-top: 10px; padding: 5px; }
+  </style>
+</head>
+<body>
+  <h2>チャットアプリ</h2>
+  <div>
+    名前: <input id="nameInput" placeholder="名前" />
+    部屋: <input id="roomInput" placeholder="ルームキー" />
+    <button id="joinBtn">入室</button>
+    <button id="changeNameBtn">名前変更</button>
+  </div>
+  <div id="messages"></div>
+  <input id="msgInput" placeholder="メッセージを入力" />
+  <button id="sendBtn">送信</button>
+
+  <script>
+    const socket = io();
+    const messages = document.getElementById("messages");
+
+    document.getElementById("joinBtn").onclick = () => {
+      const name = document.getElementById("nameInput").value;
+      const room = document.getElementById("roomInput").value;
+      socket.emit("joinRoom", { name, room });
+    };
+
+    document.getElementById("sendBtn").onclick = () => {
+      const msg = document.getElementById("msgInput").value;
+      socket.emit("chatMessage", msg);
+      document.getElementById("msgInput").value = "";
+    };
+
+    document.getElementById("changeNameBtn").onclick = () => {
+      const newName = prompt("新しい名前を入力してください:");
+      if (newName) socket.emit("changeName", newName);
+    };
+
+    socket.on("chatMessage", (msg) => {
+      const div = document.createElement("div");
+      div.textContent = msg;
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    window.addEventListener("focus", () => {
+      socket.emit("reconnectUser");
+    });
+  </script>
+</body>
+</html>
