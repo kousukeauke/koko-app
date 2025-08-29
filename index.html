@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>授業チャット</title>
+  <style>
+    body { font-family: sans-serif; }
+    #messages { border: 1px solid #ccc; height: 200px; overflow-y: scroll; padding: 5px; }
+    #chat { margin-top: 10px; }
+  </style>
+</head>
+<body>
+<div id="login">
+  名前: <input id="name"><br>
+  ルームキー: <input id="room"><br>
+  <button onclick="joinRoom()">入室</button>
+</div>
+
+<div id="chat" style="display:none;">
+  <div id="messages"></div>
+  <input id="msg" placeholder="メッセージ">
+  <button onclick="sendMessage()">送信</button>
+  <br><br>
+  新しい名前: <input id="newName">
+  <button onclick="changeName()">変更</button>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  let userName, roomKey;
+  let userId = localStorage.getItem("userId");
+  if (!userId) {
+    userId = Date.now() + "-" + Math.floor(Math.random() * 1000);
+    localStorage.setItem("userId", userId);
+  }
+
+  function joinRoom() {
+    userName = document.getElementById("name").value;
+    roomKey = document.getElementById("room").value;
+    socket.emit("joinRoom", roomKey, userName, userId);
+    document.getElementById("login").style.display = "none";
+    document.getElementById("chat").style.display = "block";
+  }
+
+  function sendMessage() {
+    const msg = document.getElementById("msg").value;
+    socket.emit("sendMessage", msg);
+    document.getElementById("msg").value = "";
+  }
+
+  function changeName() {
+    const newName = document.getElementById("newName").value;
+    if (newName.trim() !== "") {
+      socket.emit("changeName", newName);
+      userName = newName;
+      document.getElementById("newName").value = "";
+    }
+  }
+
+  socket.on("chatMessage", (msg) => {
+    const div = document.createElement("div");
+    div.textContent = msg;
+    document.getElementById("messages").appendChild(div);
+    document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+  });
+</script>
+</body>
+</html>
