@@ -1,5 +1,5 @@
 {
-  "name": "chat-room",
+  "name": "chat-app",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
